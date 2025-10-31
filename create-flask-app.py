@@ -1,4 +1,4 @@
-import os, venv, subprocess
+import os, venv, subprocess, glob
 
 # START TEXT CHUNKS
 APP_PY_TEXT = """from flask import Flask, render_template, request, redirect, url_for, send_from_directory, flash
@@ -165,33 +165,38 @@ README_TEXT = """# Project
 # END TEXT CHUNKS
 
 # HELPER FUNCTIONS
-BOOTSTRAP_CDN = "https://www.getbootstrap.com" 
+BOOTSTRAP_CDN = "https://github.com/twbs/bootstrap/releases/download/v5.3.8/bootstrap-5.3.8-dist.zip"
 
-def write_file(path, content):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
+def write_file(project_dir, path, content):
+    fullpath = os.path.join(project_dir, path)
+    with open(fullpath, "w") as f:
         f.write(content)
     print(f"Created {path}")
 
+def get_bootstrap(PROJECT_DIR):
+    subprocess.run(["wget", "--directory-prefix",PROJECT_DIR, BOOTSTRAP_CDN])
+    bootstrap_zip = glob.glob(os.path.join(PROJECT_DIR, "bootstrap-*.zip"))[0]
+    
+    subprocess.run(["unzip", "-d", PROJECT_DIR, bootstrap_zip])
+    bootstrap_folder = glob.glob(os.path.join(PROJECT_DIR, "bootstrap-*-dist"))[0]
+    
+    subprocess.run(["mv", os.path.join(bootstrap_folder, "css"), os.path.join(PROJECT_DIR, "static")])
+    subprocess.run(["mv", os.path.join(bootstrap_folder, "js"), os.path.join(PROJECT_DIR, "static")])
+
 #MAIN SCRIPT
 def main():
-    print("Flask App Generator v0.1")
+    print("Flask App Generator v0.2")
 
     PROJECT_DIR = input("Enter the project directory (. for current): ").strip()
 
     os.makedirs(os.path.join(PROJECT_DIR, "static"), exist_ok=True)
 
-    write_file("app.py", APP_PY_TEXT)
+    write_file(PROJECT_DIR, "app.py", APP_PY_TEXT)
 
     IS_LOCAL_BOOTSTRAP = input("Would you like to download Bootstrap locally? (Y/n): ").strip().lower() != 'n'
     if IS_LOCAL_BOOTSTRAP:
-        #create static folder
-        os.makedirs(os.path.join(PROJECT_DIR, "static/css"), exist_ok=True)
-        print(f"Created {os.path.join(PROJECT_DIR, "static/css")}")
-        os.makedirs(os.path.join(PROJECT_DIR, "static/js"), exist_ok=True)
-        print(f"Created {os.path.join(PROJECT_DIR, "static/js")}")
-
         #download bootstrap from the cdn
+        get_bootstrap(PROJECT_DIR=PROJECT_DIR)
 
     #create base.html
     os.makedirs(os.path.join(PROJECT_DIR, "templates"), exist_ok=True)
@@ -209,7 +214,7 @@ def main():
     print(f"Created {os.path.join(PROJECT_DIR, "templates/base.html")}")
 
     #create home.html
-    write_file("templates/home.html", HOME_HTML)
+    write_file(PROJECT_DIR, "templates/home.html", HOME_HTML)
 
     #create python venv using given name
     VENV_NAME = input("Enter the name for the Python venv: ").strip()
@@ -222,23 +227,23 @@ def main():
     subprocess.run([venv_python, "-m", "pip", "install", "flask", "python-dotenv"])
 
     #create environment variable file
-    write_file(".env", ENV_TEXT)
+    write_file(PROJECT_DIR, ".env", ENV_TEXT)
 
     #create gitignore
-    write_file(".gitignore", GITIGNORE_TEXT)
+    write_file(PROJECT_DIR, ".gitignore", GITIGNORE_TEXT)
     
     #create dockerignore
-    write_file(".dockerignore", DOCKERIGNORE_TEXT)
+    write_file(PROJECT_DIR, ".dockerignore", DOCKERIGNORE_TEXT)
 
     #create Dockerfile
-    write_file("Dockerfile", DOCKERFILE_TEXT)
+    write_file(PROJECT_DIR, "Dockerfile", DOCKERFILE_TEXT)
    
    #create requirements.txt
     result = subprocess.run([venv_python, "-m", "pip", "freeze"], capture_output=True, text=True)
-    write_file("requirements.txt", result.stdout)
+    write_file(PROJECT_DIR, "requirements.txt", result.stdout)
 
     #create README.md
-    write_file("README.md", README_TEXT)
+    write_file(PROJECT_DIR, "README.md", README_TEXT)
     
     #MAKE_GITHUB_ACTIONS = input("Would you like to create .github/workflows/deploy.yml?? (Y/n): ").strip().lower() != 'n'
     #if MAKE_GITHUB_ACTIONS:

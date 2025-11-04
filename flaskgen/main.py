@@ -203,7 +203,7 @@ def get_bootstrap(PROJECT_DIR):
 
 #MAIN SCRIPT
 def main():
-    print("Flask App Generator v0.2")
+    print("Flask App Generator v1.0")
 
     PROJECT_DIR = input("Enter the project directory (. for current): ").strip()
 

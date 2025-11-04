@@ -6,5 +6,8 @@ This project saves time setting up a Flask project which could be better utilize
 ## How to setup
 
 #### Install as a system-wide tool
+```git clone https://github.com/actuallyarnav/flaskgen```
+
+```cd flaskgen```
 
 ```pipx install .```

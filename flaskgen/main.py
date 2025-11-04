@@ -201,6 +201,11 @@ def get_bootstrap(PROJECT_DIR):
     subprocess.run(["mv", os.path.join(bootstrap_folder, "css"), os.path.join(PROJECT_DIR, "static")])
     subprocess.run(["mv", os.path.join(bootstrap_folder, "js"), os.path.join(PROJECT_DIR, "static")])
 
+    print("Cleaning up...")
+    subprocess.run(["rm", bootstrap_zip])
+    subprocess.run(["rm", bootstrap_folder])
+
+
 #MAIN SCRIPT
 def main():
     print("Flask App Generator v1.0")
